@@ -1,5 +1,8 @@
 package com.dzkjdx.pay.service.impl;
 
+import com.dzkjdx.pay.dao.PayInfoMapper;
+import com.dzkjdx.pay.enums.payPlatformEnum;
+import com.dzkjdx.pay.pojo.PayInfo;
 import com.dzkjdx.pay.service.IPayService;
 
 import com.lly835.bestpay.config.WxPayConfig;
@@ -9,7 +12,6 @@ import com.lly835.bestpay.enums.OrderStatusEnum;
 import com.lly835.bestpay.model.PayRequest;
 import com.lly835.bestpay.model.PayResponse;
 import com.lly835.bestpay.service.BestPayService;
-import com.lly835.bestpay.service.impl.BestPayServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,9 +25,18 @@ public class PayService implements IPayService {
     @Autowired
     private BestPayService bestPayService;
 
+    @Autowired
+    private PayInfoMapper payInfoMapper;
+
     @Override
     public PayResponse creat(String orderId, BigDecimal amount, BestPayTypeEnum bestPayTypeEnum) {
         //缺少步骤：写入数据库
+        PayInfo payInfo = new PayInfo(Long.parseLong(orderId),
+                payPlatformEnum.getByBestPayTypeEnum(bestPayTypeEnum).getCode(),
+                OrderStatusEnum.NOTPAY.name(),
+                amount);
+        payInfoMapper.insertSelective(payInfo);
+
         PayRequest request = new PayRequest();
         request.setOrderName("8498166-支付初体验6");
         request.setOrderId(orderId);
